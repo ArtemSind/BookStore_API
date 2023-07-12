@@ -1,10 +1,11 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Options, UnauthorizedException} from '@nestjs/common';
 import {Model} from "mongoose";
 import {InjectModel} from "@nestjs/mongoose";
 import {User, UserDocument} from "../../schemas/user";
 import {JwtService} from "@nestjs/jwt";
 import {UserDto} from "../../dtos/user-dto";
 import {CredentialsDto} from "../../dtos/credentials-dto";
+import {IUser} from "../../interfaces/user";
 
 @Injectable()
 export class UsersService {
@@ -13,30 +14,36 @@ export class UsersService {
                 private jwtService: JwtService) {
     }
 
-    async createUser(data: UserDto): Promise<User> {
-        const userData = new this.userModel(data);
-        return userData.save();
+    
+    async getUserByCredentials(email: string, password: string): Promise<User> {
+        return this.userModel.findOne({email: email, password: password})
     }
 
-    async getUserByCredentials(login: string, password: string): Promise<User> {
-        return this.userModel.findOne({login: login, password: password})
-    }
-    
     async getUserById(id: string): Promise<User> {
         return this.userModel.findById(id);
     }
-    
+
     async getUserByJwt(jwt: string): Promise<User> {
-        const decodedCredentials = this.jwtService.decode(jwt) as {login:string, password: string};
-        return this.getUserByCredentials(decodedCredentials.login, decodedCredentials.password);
+        try {
+            const decodedCredentials = this.jwtService.decode(jwt) as CredentialsDto;
+            return this.getUserByCredentials(decodedCredentials.email, decodedCredentials.password);
+        } catch (e) {
+            throw new UnauthorizedException
+        }
     }
 
     async loginUser(credentials: CredentialsDto): Promise<{ access_token: string; id: any }> {
 
         const userFromDb = await this.userModel.find({email: credentials.email, password: credentials.password});
+
         return {
-            id: userFromDb[0]._id,
-            access_token: this.jwtService.sign(credentials),
+            id: userFromDb ? userFromDb[0]._id : null,
+            access_token: userFromDb ? this.jwtService.sign(credentials) : null,
         };
+    }
+
+    async registerUser(registrationData: IUser): Promise<User> {
+        const userData = new this.userModel(registrationData);
+        return userData.save();
     }
 }
