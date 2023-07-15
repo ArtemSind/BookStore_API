@@ -8,7 +8,7 @@ export type BasketDocument = HydratedDocument<Basket>;
 @Schema()
 export class Basket implements IBasket {
 
-    @Prop({type: mongoose.Types.ObjectId}) _id: string;
+    @Prop({type: mongoose.Types.ObjectId}) id: string;
     @Prop() books: IBook[];
     @Prop() userId: string;
 }

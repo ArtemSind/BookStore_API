@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 
 export class BookDto implements IBook {
-    _id?: string;
+    id: string;
     author: string;
     img: string;
     name: string;

@@ -7,7 +7,7 @@ export type BookDocument = HydratedDocument<Book>;
 @Schema()
 export class Book implements IBook {
 
-    @Prop({type: mongoose.Types.ObjectId}) _id;
+    @Prop({type: mongoose.Types.ObjectId}) id;
     @Prop() author: string;
     @Prop() img: string;
     @Prop() price: string;

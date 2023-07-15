@@ -1,7 +1,8 @@
-import {Body, Controller, Post} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post} from '@nestjs/common';
 import {UsersService} from "../../services/users/users.service";
 import {IUser} from "../../interfaces/user";
 import {ICredentials} from "../../interfaces/credentials";
+import {ChangePasswordDto} from "../../dtos/change-password-dto";
 
 @Controller('auth')
 export class AuthController {
@@ -11,6 +12,7 @@ export class AuthController {
 
     @Post('register')
     registerUser(@Body() data: IUser) {
+        console.log(data);
         return this.userService.registerUser(data);
     }
     
@@ -22,5 +24,16 @@ export class AuthController {
     @Post('current-user')
     getCurrentUser(@Body() data: { jwt:string }) {
         return this.userService.getUserByJwt(data.jwt);
+    }
+    
+    @Get(':email')
+    getUserByEmail(@Param('email') email: string) {
+        return this.userService.getUserByEmail(email);
+    }
+    
+    @Post('change-password')
+    changePassword(@Body() body: ChangePasswordDto) {
+        console.log('inside change psw', body)
+        return this.userService.changePassword(body);
     }
 }

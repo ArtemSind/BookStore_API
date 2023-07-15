@@ -6,21 +6,24 @@ import {JwtService} from "@nestjs/jwt";
 import {UserDto} from "../../dtos/user-dto";
 import {CredentialsDto} from "../../dtos/credentials-dto";
 import {IUser} from "../../interfaces/user";
+import {BasketsService} from "../baskets/baskets.service";
+import {ChangePasswordDto} from "../../dtos/change-password-dto";
 
 @Injectable()
 export class UsersService {
 
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>,
-                private jwtService: JwtService) {
+                private jwtService: JwtService,
+                private basketService: BasketsService) {
     }
 
-    
+
     async getUserByCredentials(email: string, password: string): Promise<User> {
         return this.userModel.findOne({email: email, password: password})
     }
 
-    async getUserById(id: string): Promise<User> {
-        return this.userModel.findById(id);
+    async getUserByEmail(email: string): Promise<User> {
+        return this.userModel.findOne({email: email});
     }
 
     async getUserByJwt(jwt: string): Promise<User> {
@@ -42,8 +45,16 @@ export class UsersService {
         };
     }
 
-    async registerUser(registrationData: IUser): Promise<User> {
+    async registerUser(registrationData: IUser) {
         const userData = new this.userModel(registrationData);
+
         return userData.save();
+    }
+
+    async changePassword(body: ChangePasswordDto) {
+        return this.userModel.updateOne(
+            {email: body.email, password: body.oldPassword}, 
+            {$set: {password: body.newPassword}}, 
+            {upsert: true});
     }
 }

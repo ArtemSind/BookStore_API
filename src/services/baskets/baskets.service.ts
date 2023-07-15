@@ -3,12 +3,17 @@ import {InjectModel} from "@nestjs/mongoose";
 import {Model} from "mongoose";
 import {Basket, BasketDocument} from "../../schemas/basket";
 import {IBook} from "../../interfaces/book";
-import {IBasket} from "../../interfaces/basket";
-import {use} from "passport";
+import {BasketDto} from "../../dtos/basket-dto";
 
 @Injectable()
 export class BasketsService {
-    constructor(@InjectModel(Basket.name) private basketModel: Model<BasketDocument>) {
+    constructor(@InjectModel(Basket.name) private basketModel: Model<BasketDocument>) {}
+    
+    
+    async createBasket(userId:string) {
+        const data = new BasketDto([], userId);
+        const basketData = new this.basketModel(data);
+        return basketData.save();
     }
     
     
@@ -16,22 +21,21 @@ export class BasketsService {
         return this.basketModel.findOne({userId: userId})
     }
     
-    async addToBasket(userId: string, book: IBook) {
-        this.basketModel.findOneAndUpdate(
+    async addToBasket (userId: string, book: IBook) {
+        
+        return this.basketModel.findOneAndUpdate(
             {userId: userId},
-            {$push: {books: book}},
-            function (error, success) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    console.log(success);
-                }});
+            {$push: {books: book}});
     }
     
-    //async removeFromBasket(userId: string)
-    
-    
-
-
-
+    async removeFromBasket(userId: string, bookId: string) {
+        
+        const a = await this.basketModel.findOne({userId: userId});
+        
+        const b = await this.basketModel.findOneAndUpdate(
+            {userId: userId},
+            {$pull: {books: {_id: bookId}}});
+        
+        console.log(b);
+    }
 }
